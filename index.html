@@ -1,0 +1,865 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<link rel="manifest" href="manifest.json">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="カロリーコイン">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="theme-color" content="#FF6B6B">
+<title>カロリーコイン 🔥</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800;900&family=Pacifico&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --red: #FF6B6B;
+    --orange: #FF9F43;
+    --yellow: #FECA57;
+    --green: #1DD1A1;
+    --blue: #54A0FF;
+    --purple: #5F27CD;
+    --pink: #FF9FF3;
+    --dark: #2C2C54;
+    --coin: #FFD700;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Nunito', sans-serif;
+    background: #F0F4FF;
+    min-height: 100vh;
+    max-width: 430px;
+    margin: 0 auto;
+    position: relative;
+    overflow-x: hidden;
+  }
+
+  /* Header */
+  .header {
+    background: linear-gradient(135deg, var(--red), var(--orange));
+    padding: 20px 20px 28px;
+    position: relative;
+    overflow: hidden;
+  }
+  .header::before {
+    content: '';
+    position: absolute;
+    width: 200px; height: 200px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 50%;
+    top: -80px; right: -60px;
+  }
+  .header::after {
+    content: '';
+    position: absolute;
+    width: 120px; height: 120px;
+    background: rgba(255,255,255,0.08);
+    border-radius: 50%;
+    bottom: -40px; left: 30px;
+  }
+  .header-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: relative; z-index: 1;
+  }
+  .app-title {
+    font-family: 'Fredoka One', cursive;
+    font-size: 24px;
+    color: white;
+  }
+  .date-label {
+    font-size: 12px;
+    color: rgba(255,255,255,0.85);
+    font-weight: 600;
+  }
+
+  /* Coin Balance */
+  .coin-balance {
+    text-align: center;
+    margin: 16px 0 4px;
+    position: relative; z-index: 1;
+  }
+  .coin-icon-big {
+    font-size: 48px;
+    display: block;
+    animation: bounce 2s infinite;
+  }
+  @keyframes bounce {
+    0%,100% { transform: translateY(0); }
+    50% { transform: translateY(-8px); }
+  }
+  .balance-number {
+    font-family: 'Nunito', sans-serif;
+    font-weight: 900;
+    font-size: 52px;
+    color: var(--yellow);
+    text-shadow: 0 3px 0 rgba(0,0,0,0.2);
+    line-height: 1;
+  }
+  .balance-label {
+    font-size: 14px;
+    color: rgba(255,255,255,0.9);
+    font-weight: 700;
+    letter-spacing: 1px;
+  }
+
+  /* Nav Tabs */
+  .nav {
+    display: flex;
+    background: white;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+    position: sticky; top: 0; z-index: 100;
+  }
+  .nav-btn {
+    flex: 1;
+    padding: 12px 4px;
+    border: none;
+    background: none;
+    font-family: 'Nunito', sans-serif;
+    font-size: 11px;
+    font-weight: 800;
+    color: #aaa;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    transition: all 0.2s;
+  }
+  .nav-btn .nav-icon { font-size: 20px; }
+  .nav-btn.active {
+    color: var(--red);
+    border-bottom: 3px solid var(--red);
+  }
+
+  /* Pages */
+  .page { display: none; padding: 16px; }
+  .page.active { display: block; }
+
+  /* Section Title */
+  .section-title {
+    font-family: 'Nunito', sans-serif;
+    font-size: 20px;
+    font-weight: 900;
+    color: var(--dark);
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    letter-spacing: -0.3px;
+  }
+
+  /* Exercise Card */
+  .add-card {
+    background: white;
+    border-radius: 20px;
+    padding: 20px;
+    margin-bottom: 16px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.07);
+  }
+  .input-row {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+  .input-group {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+  .input-group label {
+    font-size: 11px;
+    font-weight: 800;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .input-group select,
+  .input-group input {
+    border: 2px solid #eee;
+    border-radius: 12px;
+    padding: 10px 12px;
+    font-family: 'Nunito', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--dark);
+    outline: none;
+    transition: border-color 0.2s;
+    background: #FAFAFA;
+  }
+  .input-group select:focus,
+  .input-group input:focus { border-color: var(--orange); background: white; }
+
+  .add-btn {
+    width: 100%;
+    padding: 14px;
+    border: none;
+    border-radius: 14px;
+    font-family: 'Nunito', sans-serif;
+    font-size: 17px;
+    font-weight: 900;
+    cursor: pointer;
+    transition: transform 0.15s, box-shadow 0.15s;
+    position: relative;
+    overflow: hidden;
+  }
+  .add-btn:active { transform: scale(0.97); }
+  .add-btn-exercise {
+    background: linear-gradient(135deg, var(--green), #00B894);
+    color: white;
+    box-shadow: 0 4px 14px rgba(29,209,161,0.4);
+  }
+
+  /* Log List */
+  .log-list { display: flex; flex-direction: column; gap: 10px; }
+  .log-item {
+    background: white;
+    border-radius: 16px;
+    padding: 14px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    animation: slideIn 0.3s ease;
+  }
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .log-left { display: flex; align-items: center; gap: 12px; }
+  .log-emoji {
+    width: 44px; height: 44px;
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px;
+  }
+  .log-name { font-size: 15px; font-weight: 800; color: var(--dark); }
+  .log-time { font-size: 12px; color: #aaa; font-weight: 600; }
+  .log-coins {
+    font-family: 'Nunito', sans-serif;
+    font-weight: 900;
+    font-size: 18px;
+    color: var(--orange);
+  }
+  .log-coins span { font-size: 14px; }
+
+  /* Shop Page */
+  .shop-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  .shop-item {
+    background: white;
+    border-radius: 20px;
+    padding: 16px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.07);
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.2s;
+  }
+  .shop-item:active { transform: scale(0.97); }
+  .shop-item-emoji { font-size: 40px; display: block; margin-bottom: 8px; }
+  .shop-item-name {
+    font-size: 13px;
+    font-weight: 800;
+    color: var(--dark);
+    margin-bottom: 4px;
+  }
+  .shop-item-cal {
+    font-size: 11px;
+    color: #aaa;
+    font-weight: 600;
+    margin-bottom: 10px;
+  }
+  .shop-item-price {
+    font-family: 'Nunito', sans-serif;
+    font-weight: 900;
+    font-size: 16px;
+    color: var(--orange);
+    margin-bottom: 8px;
+  }
+  .buy-btn {
+    width: 100%;
+    padding: 8px;
+    border: none;
+    border-radius: 10px;
+    font-family: 'Nunito', sans-serif;
+    font-size: 13px;
+    font-weight: 800;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .buy-btn.can-buy {
+    background: linear-gradient(135deg, var(--yellow), var(--orange));
+    color: white;
+    box-shadow: 0 3px 10px rgba(255,159,67,0.35);
+  }
+  .buy-btn.cannot-buy {
+    background: #eee;
+    color: #bbb;
+    cursor: not-allowed;
+  }
+
+  /* Custom shop item */
+  .custom-shop-card {
+    background: #FFF8F0;
+    border-radius: 20px;
+    padding: 20px;
+    margin-top: 16px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.07);
+    border: 2px dashed #FFD6A5;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 800;
+  }
+  .custom-shop-card label {
+    font-family: 'Nunito', sans-serif;
+    font-size: 11px;
+    color: #C8956C;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    display: block;
+    margin-bottom: 5px;
+  }
+  .custom-shop-card .section-title {
+    font-family: 'Nunito', sans-serif;
+    font-weight: 900;
+    color: #C8956C;
+  }
+  .custom-shop-card input,
+  .custom-shop-card select {
+    font-family: 'Nunito', sans-serif;
+    font-weight: 800;
+  }
+
+  /* Stats Page */
+  .stats-card {
+    background: white;
+    border-radius: 20px;
+    padding: 20px;
+    margin-bottom: 14px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.07);
+  }
+  .stats-row {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+  .stat-box {
+    flex: 1;
+    border-radius: 16px;
+    padding: 16px 12px;
+    text-align: center;
+  }
+  .stat-number {
+    font-family: 'Nunito', sans-serif;
+    font-weight: 900;
+    font-size: 28px;
+    display: block;
+    line-height: 1;
+  }
+  .stat-label {
+    font-size: 11px;
+    font-weight: 800;
+    margin-top: 4px;
+    opacity: 0.8;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .history-list { display: flex; flex-direction: column; gap: 8px; }
+  .history-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 14px;
+    background: #FAFAFA;
+    border-radius: 12px;
+  }
+  .history-label { font-size: 14px; font-weight: 700; color: var(--dark); }
+  .history-sub { font-size: 11px; color: #aaa; }
+  .history-amount {
+    font-family: 'Fredoka One', cursive;
+    font-size: 16px;
+  }
+
+  /* Toast */
+  .toast {
+    position: fixed;
+    bottom: 90px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--dark);
+    color: white;
+    padding: 12px 24px;
+    border-radius: 100px;
+    font-size: 14px;
+    font-weight: 700;
+    z-index: 999;
+    white-space: nowrap;
+    display: none;
+  }
+  .toast.show { display: block; }
+
+  /* Empty state */
+  .empty {
+    text-align: center;
+    padding: 30px;
+    color: #ccc;
+    font-size: 14px;
+    font-weight: 700;
+  }
+  .empty .empty-icon { font-size: 40px; display: block; margin-bottom: 8px; }
+
+  /* Coin animation */
+  .coin-pop {
+    position: fixed;
+    font-size: 30px;
+    pointer-events: none;
+    z-index: 1000;
+    animation: coinFly 1s ease forwards;
+  }
+  @keyframes coinFly {
+    0% { transform: translateY(0) scale(1); opacity: 1; }
+    100% { transform: translateY(-120px) scale(0.5); opacity: 0; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="header">
+  <div class="header-top">
+    <div></div>
+    <div class="date-label" id="dateLabel"></div>
+  </div>
+  <div class="coin-balance">
+    <span class="coin-icon-big">🪙</span>
+    <div class="balance-number" id="balanceDisplay">0</div>
+    <div class="balance-label">CALORIE COINS</div>
+  </div>
+</div>
+
+<!-- Nav -->
+<nav class="nav">
+  <button class="nav-btn active" onclick="switchPage('exercise')" id="nav-exercise">
+    <span class="nav-icon">🏃</span>運動
+  </button>
+  <button class="nav-btn" onclick="switchPage('shop')" id="nav-shop">
+    <span class="nav-icon">🛍️</span>ショップ
+  </button>
+  <button class="nav-btn" onclick="switchPage('stats')" id="nav-stats">
+    <span class="nav-icon">📊</span>記録
+  </button>
+</nav>
+
+<!-- Exercise Page -->
+<div class="page active" id="page-exercise">
+  <br>
+  <div class="section-title">🏃 運動を記録</div>
+  <div class="add-card">
+    <div class="input-row">
+      <div class="input-group">
+        <label>アクティビティ</label>
+        <select id="exerciseName"><option value="🚶 ウォーキング">🚶 ウォーキング</option><option value="🏃 ランニング">🏃 ランニング</option><option value="🚴 サイクリング">🚴 サイクリング</option><option value="🏊 水泳">🏊 水泳</option><option value="💪 筋トレ">💪 筋トレ</option><option value="🧘 ヨガ">🧘 ヨガ</option><option value="💃 ダンス">💃 ダンス</option><option value="🥊 ボクシング">🥊 ボクシング</option><option value="⚽ スポーツ">⚽ スポーツ</option><option value="🧗 クライミング">🧗 クライミング</option><option value="⚡ その他">⚡ その他</option></select>
+      </div>
+    </div>
+    <div class="input-row">
+      <div class="input-group">
+        <label>消費カロリー (kcal)</label>
+        <input type="number" id="exerciseCal" placeholder="200" min="1">
+      </div>
+    </div>
+    <button class="add-btn add-btn-exercise" onclick="addExercise()">
+      ✅ Log & Earn Coins!
+    </button>
+  </div>
+
+  <div class="section-title">📋 今日の運動</div>
+  <div class="log-list" id="exerciseLog">
+    <div class="empty"><span class="empty-icon">💤</span>まだ記録なし<br>運動してコインを稼ごう！</div>
+  </div>
+</div>
+
+<!-- Shop Page -->
+<div class="page" id="page-shop">
+  <br>
+  <div class="section-title">🛍️ ご褒美ショップ</div>
+  <div id="shopGrid"></div>
+
+  <div class="custom-shop-card">
+    <div class="section-title" style="font-size:16px;font-weight:900">✏️ オリジナルご褒美を追加</div>
+    <div class="input-row">
+      <div class="input-group">
+        <label>メニュー名</label>
+        <input type="text" id="customName" placeholder="例: 好きなスイーツ">
+      </div>
+    </div>
+    <div class="input-row">
+      <div class="input-group">
+        <label>絵文字</label>
+        <input type="text" id="customEmoji" placeholder="🍰" maxlength="2">
+      </div>
+    </div>
+    <div class="input-row">
+      <div class="input-group">
+        <label>必要コイン</label>
+        <input type="number" id="customCoins" placeholder="200" min="1">
+      </div>
+    </div>
+    <div class="input-row">
+      <div class="input-group">
+        <label>カテゴリ</label>
+        <select id="customCategory">
+          <option value="ramen">🍜 ラーメン</option>
+          <option value="sweets">🍬 スイーツ</option>
+          <option value="other">⭐ その他</option>
+        </select>
+      </div>
+    </div>
+    <button class="add-btn" style="background:linear-gradient(135deg,var(--blue),var(--purple));color:white;box-shadow:0 4px 14px rgba(84,160,255,0.4)" onclick="addCustomShopItem()">
+      ➕ Add Reward
+    </button>
+  </div>
+</div>
+
+<!-- Stats Page -->
+<div class="page" id="page-stats">
+  <br>
+  <div class="section-title">📊 あなたの記録</div>
+  <div class="stats-card">
+    <div class="stats-row">
+      <div class="stat-box" style="background:linear-gradient(135deg,#FF6B6B,#FF9F43);color:white">
+        <span class="stat-number" id="statTotalCal">0</span>
+        <div class="stat-label">消費 kcal</div>
+      </div>
+      <div class="stat-box" style="background:linear-gradient(135deg,var(--yellow),var(--orange));color:white">
+        <span class="stat-number" id="statTotalCoins">0</span>
+        <div class="stat-label">稼いだコイン</div>
+      </div>
+    </div>
+    <div class="stats-row">
+      <div class="stat-box" style="background:linear-gradient(135deg,var(--green),#00B894);color:white">
+        <span class="stat-number" id="statExerciseDays">0</span>
+        <div class="stat-label">運動回数</div>
+      </div>
+      <div class="stat-box" style="background:linear-gradient(135deg,var(--blue),var(--purple));color:white">
+        <span class="stat-number" id="statSpentCoins">0</span>
+        <div class="stat-label">使ったコイン</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-title">📝 履歴</div>
+  <div class="stats-card">
+    <div class="history-list" id="historyList">
+      <div class="empty"><span class="empty-icon">📭</span>履歴なし</div>
+    </div>
+  </div>
+
+  <div class="section-title">💾 バックアップ</div>
+  <div class="stats-card">
+    <p style="font-size:13px;color:#888;font-weight:600;margin-bottom:14px">データをファイルに保存したり、以前のバックアップを読み込めます。</p>
+    <button onclick="exportData()" style="width:100%;padding:13px;border:none;border-radius:14px;font-family:'Nunito',sans-serif;font-size:15px;font-weight:800;cursor:pointer;background:linear-gradient(135deg,#1DD1A1,#00B894);color:white;margin-bottom:10px;box-shadow:0 4px 14px rgba(29,209,161,0.35)">
+      📤 Export Backup
+    </button>
+    <label style="display:block;width:100%;padding:13px;border:none;border-radius:14px;font-family:'Nunito',sans-serif;font-size:15px;font-weight:800;cursor:pointer;background:linear-gradient(135deg,#54A0FF,#5F27CD);color:white;text-align:center;box-shadow:0 4px 14px rgba(84,160,255,0.35);box-sizing:border-box">
+      📥 Import Backup
+      <input type="file" accept=".json" onchange="importData(event)" style="display:none">
+    </label>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// Data
+let state = JSON.parse(localStorage.getItem('caloriecoin') || JSON.stringify({
+  balance: 0,
+  totalEarned: 0,
+  totalSpent: 0,
+  exercises: [],
+  history: []
+}));
+
+const EXERCISE_META = {
+  walking:  { emoji: '🚶', name: 'ウォーキング', calPerMin: 4 },
+  running:  { emoji: '🏃', name: 'ランニング',   calPerMin: 9 },
+  cycling:  { emoji: '🚴', name: 'サイクリング', calPerMin: 7 },
+  swimming: { emoji: '🏊', name: '水泳',         calPerMin: 8 },
+  gym:      { emoji: '💪', name: '筋トレ',       calPerMin: 6 },
+  yoga:     { emoji: '🧘', name: 'ヨガ',         calPerMin: 3 },
+  dance:    { emoji: '💃', name: 'ダンス',       calPerMin: 5 },
+  other:    { emoji: '⚡', name: 'その他',       calPerMin: 5 }
+};
+
+let shopItems = JSON.parse(localStorage.getItem('shopItems') || JSON.stringify([
+  { id:1, emoji:'🍜', name:'ラーメン', cal:800, coins:800, category:'ramen' },
+  { id:2, emoji:'🍜', name:'替え玉', cal:250, coins:250, category:'ramen' },
+  { id:3, emoji:'🍳', name:'チャーハン', cal:600, coins:600, category:'ramen' },
+  { id:4, emoji:'🥤', name:'シェイク', cal:350, coins:350, category:'sweets' },
+  { id:5, emoji:'🍦', name:'ソフトクリーム', cal:200, coins:200, category:'sweets' },
+]));
+
+function save() {
+  localStorage.setItem('caloriecoin', JSON.stringify(state));
+  localStorage.setItem('shopItems', JSON.stringify(shopItems));
+}
+
+function switchPage(name) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('page-' + name).classList.add('active');
+  document.getElementById('nav-' + name).classList.add('active');
+  if (name === 'shop') renderShop();
+  if (name === 'stats') renderStats();
+}
+
+let toastTimer = null;
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  if (toastTimer) clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { t.classList.remove('show'); toastTimer = null; }, 2500);
+}
+
+function popCoins(amount) {
+  for (let i = 0; i < 3; i++) {
+    setTimeout(() => {
+      const el = document.createElement('div');
+      el.className = 'coin-pop';
+      el.textContent = '🪙';
+      el.style.left = (30 + Math.random() * 40) + '%';
+      el.style.top = '30%';
+      document.body.appendChild(el);
+      setTimeout(() => el.remove(), 1000);
+    }, i * 120);
+  }
+}
+
+// Update balance display
+function updateBalance() {
+  const el = document.getElementById('balanceDisplay');
+  el.textContent = state.balance.toLocaleString();
+  save();
+}
+
+// Date
+function setDate() {
+  const d = new Date();
+  const days = ['日','月','火','水','木','金','土'];
+  document.getElementById('dateLabel').textContent =
+    `${d.getMonth()+1}/${d.getDate()}(${days[d.getDay()]})`;
+}
+
+// Exercise
+function addExercise() {
+  const name = document.getElementById('exerciseName').value.trim();
+  const cal = parseInt(document.getElementById('exerciseCal').value);
+  if (!name) { showToast('🏃 アクティビティを選んでね！'); return; }
+  if (!cal || cal < 1) { showToast('🔥 消費カロリーを入力してね！'); return; }
+
+  const coins = cal; // 1kcal = 1coin
+  const _now = new Date();
+  const entry = {
+    id: Date.now(),
+    name, cal, coins,
+    date: `${_now.getMonth()+1}/${_now.getDate()}`,
+    time: _now.toLocaleTimeString('ja-JP', {hour:'2-digit', minute:'2-digit'})
+  };
+
+  state.exercises.unshift(entry);
+  state.balance += coins;
+  state.totalEarned += coins;
+  state.history.unshift({ type: 'earn', label: `🏃 ${name}`, coins, time: entry.time });
+
+  updateBalance();
+  renderExerciseLog();
+  popCoins(coins);
+  showToast(`🎉 +${coins}コイン獲得！ (${cal}kcal消費)`);
+  document.getElementById('exerciseCal').value = '';
+}
+
+function renderExerciseLog() {
+  const log = document.getElementById('exerciseLog');
+  const today = state.exercises.filter(e => {
+    // show all for today (simple: show all in current session)
+    return true;
+  }).slice(0, 10);
+
+  if (!today.length) {
+    log.innerHTML = '<div class="empty"><span class="empty-icon">💤</span>まだ記録なし<br>運動してコインを稼ごう！</div>';
+    return;
+  }
+
+  const colors = ['#FFE5E5','#FFF3E0','#E8F5E9','#E3F2FD','#F3E5F5'];
+  log.innerHTML = today.map((e, i) => {
+    return `<div class="log-item">
+      <div class="log-left">
+        <div class="log-emoji" style="background:${colors[i%colors.length]}">🏃</div>
+        <div>
+          <div class="log-name">${e.name}</div>
+          <div class="log-time">📅 ${e.date} 🕐 ${e.time} · ${e.cal}kcal</div>
+        </div>
+      </div>
+      <div class="log-coins">+${e.coins}<span>🪙</span></div>
+    </div>`;
+  }).join('');
+}
+
+// Shop
+function renderShopGroup(items, label) {
+  if (!items.length) return '';
+  const cards = items.map(item => {
+    const canBuy = state.balance >= item.coins;
+    return `<div class="shop-item">
+      <span class="shop-item-emoji">${item.emoji}</span>
+      <div class="shop-item-name">${item.name}</div>
+      <div class="shop-item-cal">${item.cal ? item.cal + 'kcal相当' : 'ご褒美'}</div>
+      <div class="shop-item-price">🪙 ${item.coins}</div>
+      <button class="buy-btn ${canBuy ? 'can-buy' : 'cannot-buy'}" onclick="buyItem(${item.id})">
+        ${canBuy ? '交換する 🎉' : 'コイン不足'}
+      </button>
+    </div>`;
+  }).join('');
+  return `<div style="margin-bottom:20px">
+    <div style="font-size:15px;font-weight:900;color:#2C2C54;margin-bottom:10px;padding-left:4px">${label}</div>
+    <div class="shop-grid">${cards}</div>
+  </div>`;
+}
+function renderShop() {
+  const container = document.getElementById('shopGrid');
+  const ramen = shopItems.filter(i => i.category === 'ramen');
+  const sweets = shopItems.filter(i => i.category === 'sweets');
+  const other = shopItems.filter(i => !i.category || i.category === 'other');
+  container.innerHTML =
+    renderShopGroup(ramen, '🍜 ラーメン') +
+    renderShopGroup(sweets, '🍬 スイーツ') +
+    renderShopGroup(other, '⭐ その他');
+}
+
+function updateItemCal(id, val) {
+  const item = shopItems.find(i => i.id === id);
+  if (item) { item.cal = parseInt(val) || 0; save(); }
+}
+
+function buyItem(id) {
+  const item = shopItems.find(i => i.id === id);
+  if (!item || state.balance < item.coins) return;
+  state.balance -= item.coins;
+  state.totalSpent += item.coins;
+  state.history.unshift({
+    type: 'spend',
+    label: `${item.emoji} ${item.name}と交換`,
+    coins: item.coins,
+    time: new Date().toLocaleTimeString('ja-JP', {hour:'2-digit', minute:'2-digit'})
+  });
+  updateBalance();
+  renderShop();
+  showToast(`🎊 ${item.name}と交換しました！`);
+}
+
+function addCustomShopItem() {
+  const name = document.getElementById('customName').value.trim();
+  const emoji = document.getElementById('customEmoji').value.trim() || '⭐';
+  const coins = parseInt(document.getElementById('customCoins').value);
+  const category = document.getElementById('customCategory').value;
+  if (!name) { showToast('メニュー名を入力してね！'); return; }
+  if (!coins || coins < 1) { showToast('必要コインを入力してね！'); return; }
+  shopItems.push({ id: Date.now(), emoji, name, cal: 0, coins, category });
+  save();
+  renderShop();
+  document.getElementById('customName').value = '';
+  document.getElementById('customEmoji').value = '';
+  document.getElementById('customCoins').value = '';
+  showToast(`✅ ${name}を追加しました！`);
+}
+
+// Stats
+function renderStats() {
+  document.getElementById('statTotalCal').textContent = state.exercises.reduce((a,e)=>a+e.cal,0).toLocaleString();
+  document.getElementById('statTotalCoins').textContent = state.totalEarned.toLocaleString();
+  document.getElementById('statExerciseDays').textContent = state.exercises.length;
+  document.getElementById('statSpentCoins').textContent = state.totalSpent.toLocaleString();
+
+  const list = document.getElementById('historyList');
+  if (!state.history.length) {
+    list.innerHTML = '<div class="empty"><span class="empty-icon">📭</span>履歴なし</div>';
+    return;
+  }
+  list.innerHTML = state.history.slice(0,20).map(h => `
+    <div class="history-item">
+      <div>
+        <div class="history-label">${h.label}</div>
+        <div class="history-sub">🕐 ${h.time}</div>
+      </div>
+      <div class="history-amount" style="color:${h.type==='earn'?'var(--green)':'var(--red)'}">
+        ${h.type==='earn'?'+':'-'}${h.coins}🪙
+      </div>
+    </div>
+  `).join('');
+}
+
+
+// Backup
+function exportData() {
+  const data = {
+    state: state,
+    shopItems: shopItems,
+    exportedAt: new Date().toISOString()
+  };
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const d = new Date();
+  a.href = url;
+  a.download = `caloriecoin_backup_${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('📤 バックアップを保存しました！');
+}
+
+function importData(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const data = JSON.parse(e.target.result);
+      if (!data.state || !data.shopItems) throw new Error('Invalid');
+      state = data.state;
+      shopItems = data.shopItems;
+      save();
+      updateBalance();
+      renderExerciseLog();
+      renderStats();
+      showToast('📥 バックアップを読み込みました！');
+    } catch(err) {
+      showToast('❌ ファイルが正しくありません');
+    }
+  };
+  reader.readAsText(file);
+  event.target.value = '';
+}
+
+// Init
+setDate();
+updateBalance();
+renderExerciseLog();
+</script>
+
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').catch(() => {});
+  });
+}
+</script>
+</body>
+</html>
