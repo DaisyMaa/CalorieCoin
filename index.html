@@ -665,25 +665,32 @@ function addExercise() {
   if (!name) { showToast('🏃 アクティビティを選んでね！'); return; }
   if (!cal || cal < 1) { showToast('🔥 消費カロリーを入力してね！'); return; }
 
-  const coins = cal; // 1kcal = 1coin
-  const _now = new Date();
-  const entry = {
-    id: Date.now(),
-    name, cal, coins,
-    date: `${_now.getMonth()+1}/${_now.getDate()}`,
-    time: _now.toLocaleTimeString('ja-JP', {hour:'2-digit', minute:'2-digit'})
+  const coins = cal;
+  const modal = document.getElementById('confirmModal');
+  document.getElementById('confirmEmoji').textContent = '🏃';
+  document.getElementById('confirmTitle').textContent = `${name}を記録しますか？`;
+  document.getElementById('confirmSub').textContent = `🔥 ${cal}kcal消費 → +${coins}コイン獲得`;
+  document.getElementById('confirmYes').textContent = '✅ 記録する';
+  document.getElementById('confirmYes').onclick = () => {
+    const _now = new Date();
+    const entry = {
+      id: Date.now(),
+      name, cal, coins,
+      date: `${_now.getMonth()+1}/${_now.getDate()}`,
+      time: _now.toLocaleTimeString('ja-JP', {hour:'2-digit', minute:'2-digit'})
+    };
+    state.exercises.unshift(entry);
+    state.balance += coins;
+    state.totalEarned += coins;
+    state.history.unshift({ type: 'earn', label: `🏃 ${name}`, coins, time: entry.time });
+    updateBalance();
+    renderExerciseLog();
+    popCoins(coins);
+    closeConfirm();
+    showToast(`🎉 +${coins}コイン獲得！ (${cal}kcal消費)`);
+    document.getElementById('exerciseCal').value = '';
   };
-
-  state.exercises.unshift(entry);
-  state.balance += coins;
-  state.totalEarned += coins;
-  state.history.unshift({ type: 'earn', label: `🏃 ${name}`, coins, time: entry.time });
-
-  updateBalance();
-  renderExerciseLog();
-  popCoins(coins);
-  showToast(`🎉 +${coins}コイン獲得！ (${cal}kcal消費)`);
-  document.getElementById('exerciseCal').value = '';
+  modal.style.display = 'flex';
 }
 
 function renderExerciseLog() {
@@ -749,21 +756,36 @@ function updateItemCal(id, val) {
   if (item) { item.cal = parseInt(val) || 0; save(); }
 }
 
+
+// Confirm modal
 function buyItem(id) {
   const item = shopItems.find(i => i.id === id);
   if (!item || state.balance < item.coins) return;
-  state.balance -= item.coins;
-  state.totalSpent += item.coins;
-  state.history.unshift({
-    type: 'spend',
-    label: `${item.emoji} ${item.name}と交換`,
-    coins: item.coins,
-    time: new Date().toLocaleTimeString('ja-JP', {hour:'2-digit', minute:'2-digit'})
-  });
-  updateBalance();
-  renderShop();
-  showToast(`🎊 ${item.name}と交換しました！`);
+  const modal = document.getElementById('confirmModal');
+  document.getElementById('confirmEmoji').textContent = item.emoji;
+  document.getElementById('confirmTitle').textContent = `${item.name}と交換しますか？`;
+  document.getElementById('confirmSub').textContent = `🪙 ${item.coins}コイン消費`;
+  document.getElementById('confirmYes').onclick = () => {
+    state.balance -= item.coins;
+    state.totalSpent += item.coins;
+    state.history.unshift({
+      type: 'spend',
+      label: `${item.emoji} ${item.name}と交換`,
+      coins: item.coins,
+      time: new Date().toLocaleTimeString('ja-JP', {hour:'2-digit', minute:'2-digit'})
+    });
+    updateBalance();
+    renderShop();
+    closeConfirm();
+    showToast(`🎊 ${item.name}と交換しました！`);
+  };
+  modal.style.display = 'flex';
 }
+function closeConfirm() {
+  document.getElementById('confirmModal').style.display = 'none';
+  document.getElementById('confirmYes').textContent = '🎉 交換する';
+}
+
 
 function addCustomShopItem() {
   const name = document.getElementById('customName').value.trim();
@@ -861,5 +883,20 @@ if ('serviceWorker' in navigator) {
   });
 }
 </script>
+
+<!-- Confirm Modal -->
+<div id="confirmModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:2000;align-items:flex-end;justify-content:center">
+  <div style="background:white;border-radius:24px 24px 0 0;padding:28px 24px 40px;width:100%;max-width:430px;box-shadow:0 -4px 30px rgba(0,0,0,0.15)">
+    <div id="confirmEmoji" style="font-size:52px;text-align:center;margin-bottom:8px"></div>
+    <div id="confirmTitle" style="font-size:20px;font-weight:900;color:#2C2C54;text-align:center;margin-bottom:6px;font-family:'Nunito',sans-serif"></div>
+    <div id="confirmSub" style="font-size:14px;font-weight:700;color:#aaa;text-align:center;margin-bottom:24px;font-family:'Nunito',sans-serif"></div>
+    <button id="confirmYes" style="width:100%;padding:14px;border:none;border-radius:14px;font-family:'Nunito',sans-serif;font-size:17px;font-weight:900;cursor:pointer;background:linear-gradient(135deg,#FECA57,#FF9F43);color:white;margin-bottom:10px;box-shadow:0 4px 14px rgba(255,159,67,0.4)">
+      🎉 交換する
+    </button>
+    <button onclick="closeConfirm()" style="width:100%;padding:14px;border:none;border-radius:14px;font-family:'Nunito',sans-serif;font-size:17px;font-weight:900;cursor:pointer;background:#F0F4FF;color:#888">
+      キャンセル
+    </button>
+  </div>
+</div>
 </body>
 </html>
