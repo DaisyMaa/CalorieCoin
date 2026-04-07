@@ -456,6 +456,9 @@
   <button class="nav-btn" onclick="switchPage('stats')" id="nav-stats">
     <span class="nav-icon">📊</span>記録
   </button>
+  <button class="nav-btn" onclick="switchPage('settings')" id="nav-settings">
+    <span class="nav-icon">⚙️</span>設定
+  </button>
 </nav>
 
 <!-- Exercise Page -->
@@ -480,7 +483,7 @@
     </button>
   </div>
 
-  <div class="section-title">📋 今日の運動</div>
+  <div class="section-title">📋 運動履歴</div>
   <div class="log-list" id="exerciseLog">
     <div class="empty"><span class="empty-icon">💤</span>まだ記録なし<br>運動してコインを稼ごう！</div>
   </div>
@@ -575,6 +578,47 @@
   </div>
 </div>
 
+
+<!-- Settings Page -->
+<div class="page" id="page-settings">
+  <br>
+  <div class="section-title">⚙️ 設定</div>
+
+  <div class="add-card">
+    <div style="font-size:15px;font-weight:900;color:#2C2C54;margin-bottom:6px">🏋️ 減量期モード</div>
+    <div style="font-size:13px;color:#aaa;font-weight:700;margin-bottom:16px">1kcal あたりの獲得コイン数を調整できます</div>
+
+    <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap">
+      <button onclick="setRate(1)" id="rate-btn-1" class="rate-btn" style="flex:1;min-width:60px;padding:10px 6px;border:2px solid #eee;border-radius:12px;font-family:'Nunito',sans-serif;font-size:13px;font-weight:800;cursor:pointer;background:white;color:#aaa">
+        x1<br><span style="font-size:10px">通常</span>
+      </button>
+      <button onclick="setRate(0.75)" id="rate-btn-0.75" class="rate-btn" style="flex:1;min-width:60px;padding:10px 6px;border:2px solid #eee;border-radius:12px;font-family:'Nunito',sans-serif;font-size:13px;font-weight:800;cursor:pointer;background:white;color:#aaa">
+        x0.75<br><span style="font-size:10px">軽め</span>
+      </button>
+      <button onclick="setRate(0.5)" id="rate-btn-0.5" class="rate-btn" style="flex:1;min-width:60px;padding:10px 6px;border:2px solid #eee;border-radius:12px;font-family:'Nunito',sans-serif;font-size:13px;font-weight:800;cursor:pointer;background:white;color:#aaa">
+        x0.5<br><span style="font-size:10px">減量期</span>
+      </button>
+      <button onclick="setRate(0.25)" id="rate-btn-0.25" class="rate-btn" style="flex:1;min-width:60px;padding:10px 6px;border:2px solid #eee;border-radius:12px;font-family:'Nunito',sans-serif;font-size:13px;font-weight:800;cursor:pointer;background:white;color:#aaa">
+        x0.25<br><span style="font-size:10px">本気</span>
+      </button>
+    </div>
+
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
+      <div style="font-size:13px;font-weight:800;color:#888">カスタムレート：</div>
+      <input type="number" id="customRate" placeholder="例: 2.5" step="0.1" min="0.1" max="10"
+        style="width:90px;border:2px solid #eee;border-radius:12px;padding:8px 12px;font-family:'Nunito',sans-serif;font-size:14px;font-weight:800;color:#2C2C54;background:#FAFAFA">
+      <button onclick="applyCustomRate()" style="flex:1;padding:9px;border:none;border-radius:12px;font-family:'Nunito',sans-serif;font-size:13px;font-weight:900;cursor:pointer;background:linear-gradient(135deg,#54A0FF,#5F27CD);color:white">
+        適用
+      </button>
+    </div>
+
+    <div style="background:#F0F4FF;border-radius:14px;padding:14px;text-align:center">
+      <div style="font-size:12px;font-weight:800;color:#888;margin-bottom:4px">現在のレート</div>
+      <div id="currentRateDisplay" style="font-size:28px;font-weight:900;color:#FF6B6B;font-family:'Nunito',sans-serif">1 kcal = 1 coin</div>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -584,8 +628,10 @@ let state = JSON.parse(localStorage.getItem('caloriecoin') || JSON.stringify({
   totalEarned: 0,
   totalSpent: 0,
   exercises: [],
-  history: []
+  history: [],
+  coinRate: 1
 }));
+if (!state.coinRate) state.coinRate = 1;
 
 const EXERCISE_META = {
   walking:  { emoji: '🚶', name: 'ウォーキング', calPerMin: 4 },
@@ -618,6 +664,7 @@ function switchPage(name) {
   document.getElementById('nav-' + name).classList.add('active');
   if (name === 'shop') renderShop();
   if (name === 'stats') renderStats();
+  if (name === 'settings') renderSettings();
 }
 
 let toastTimer = null;
@@ -665,11 +712,11 @@ function addExercise() {
   if (!name) { showToast('🏃 アクティビティを選んでね！'); return; }
   if (!cal || cal < 1) { showToast('🔥 消費カロリーを入力してね！'); return; }
 
-  const coins = cal;
+  const coins = Math.round(cal * state.coinRate);
   const modal = document.getElementById('confirmModal');
   document.getElementById('confirmEmoji').textContent = '🏃';
   document.getElementById('confirmTitle').textContent = `${name}を記録しますか？`;
-  document.getElementById('confirmSub').textContent = `🔥 ${cal}kcal消費 → +${coins}コイン獲得`;
+  document.getElementById('confirmSub').textContent = `🔥 ${cal}kcal × ${state.coinRate} = +${coins}コイン獲得`;
   document.getElementById('confirmYes').textContent = '✅ 記録する';
   document.getElementById('confirmYes').onclick = () => {
     const _now = new Date();
@@ -682,7 +729,7 @@ function addExercise() {
     state.exercises.unshift(entry);
     state.balance += coins;
     state.totalEarned += coins;
-    state.history.unshift({ type: 'earn', label: `🏃 ${name}`, coins, time: entry.time });
+    state.history.unshift({ type: 'earn', label: `🏃 ${name}`, coins, time: entry.time, date: entry.date });
     updateBalance();
     renderExerciseLog();
     popCoins(coins);
@@ -768,11 +815,13 @@ function buyItem(id) {
   document.getElementById('confirmYes').onclick = () => {
     state.balance -= item.coins;
     state.totalSpent += item.coins;
+    const _d = new Date();
     state.history.unshift({
       type: 'spend',
       label: `${item.emoji} ${item.name}と交換`,
       coins: item.coins,
-      time: new Date().toLocaleTimeString('ja-JP', {hour:'2-digit', minute:'2-digit'})
+      time: _d.toLocaleTimeString('ja-JP', {hour:'2-digit', minute:'2-digit'}),
+      date: `${_d.getMonth()+1}/${_d.getDate()}`
     });
     updateBalance();
     renderShop();
@@ -819,7 +868,7 @@ function renderStats() {
     <div class="history-item">
       <div>
         <div class="history-label">${h.label}</div>
-        <div class="history-sub">🕐 ${h.time}</div>
+        <div class="history-sub">${h.date ? '📅 ' + h.date + ' ' : ''}🕐 ${h.time}</div>
       </div>
       <div class="history-amount" style="color:${h.type==='earn'?'var(--green)':'var(--red)'}">
         ${h.type==='earn'?'+':'-'}${h.coins}🪙
@@ -870,10 +919,46 @@ function importData(event) {
   event.target.value = '';
 }
 
+
+// Settings
+function setRate(r) {
+  state.coinRate = r;
+  save();
+  renderSettings();
+  showToast(`レートを x${r} に設定しました！`);
+}
+
+function applyCustomRate() {
+  const v = parseFloat(document.getElementById('customRate').value);
+  if (!v || v < 0.1) { showToast('正しいレートを入力してね'); return; }
+  setRate(Math.round(v * 10) / 10);
+  document.getElementById('customRate').value = '';
+}
+
+function renderSettings() {
+  const r = state.coinRate || 1;
+  document.getElementById('currentRateDisplay').textContent = `1 kcal = ${r} coin`;
+  const presets = [1, 0.75, 0.5, 0.25];
+  presets.forEach(p => {
+    const btn = document.getElementById(`rate-btn-${p}`);
+    if (!btn) return;
+    if (r === p) {
+      btn.style.borderColor = '#FF6B6B';
+      btn.style.color = '#FF6B6B';
+      btn.style.background = '#FFF0F0';
+    } else {
+      btn.style.borderColor = '#eee';
+      btn.style.color = '#aaa';
+      btn.style.background = 'white';
+    }
+  });
+}
+
 // Init
 setDate();
 updateBalance();
 renderExerciseLog();
+renderSettings();
 </script>
 
 <script>
